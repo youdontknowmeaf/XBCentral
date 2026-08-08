@@ -3,6 +3,7 @@
 #include "rlImGui/rlImGui.h"
 #include "imgui/imgui.h"
 #include "imgui/imfilebrowser.h"
+#include "definitions.h"
 
 #include <thread>
 #include <atomic>
