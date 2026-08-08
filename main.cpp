@@ -158,7 +158,7 @@ int main() {
         ImGui::Text("Copyright (c) 2026 'SpookScoop93' (@fuckingfuck81) \nLicensed under 3-Clause BSD License");
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Programming");
         ImGui::Text("SpookScoop93 - C++ programming");
-        ImGui::Text("</> RayNixx - C++ programming (help)")
+        ImGui::Text("x4raynixx - C++ programming (help)")
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Tools used");
         ImGui::TextWrapped("extract-xiso - Xbox ISO extraction utility\n"
                            "Copyright (c) 2003 'in' (in@fishtank.com) / XboxDev\n"
