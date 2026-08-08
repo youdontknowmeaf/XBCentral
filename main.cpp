@@ -26,11 +26,11 @@ int main() {
     rlImGuiSetup(true);
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
 
-    char drive_name[16] = "sdb";
+    std::string drive_name = "sdb";
     int payload_type = 0;
     ImGui::FileBrowser FileBrowser;
-    char game_path[256] = "path/to/game.iso";
-    char game_folder[256] = "./name_of_the_folder";
+    string game_path = "path/to/game.iso";
+    std::string game_folder = "./name_of_the_folder";
     int payload_game = 0;
     int action_selected = 0;
     int badupdate_version = NEWEST;
@@ -130,7 +130,15 @@ int main() {
             } else {
                 ImGui::Text("Nothing to see here.");
             }
-            if (ImGui::Button("Exec")) run_async("sleep 10",is_working);
+            std::string command;
+            switch (action_selected) {
+                case FORMAT_ISO:
+                    command = "./extract-xiso ";
+                        strcat(command, game_path + " ");
+                        strcat(command, game_folder);
+                    break;
+            }
+            if (ImGui::Button("Exec")) run_async(command,is_working);
         ImGui::End();
 
         ImGui::Begin("Status");
