@@ -152,7 +152,7 @@ int main() {
                            "Copyright (c) 2003 'in' (in@fishtank.com) / XboxDev\n"
                             "Licensed under the original BSD 4-Clause License.");
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Librares");
-        ImGui::Text("ImGui, rlImGui and Raylib - GUI, Window Init and Raylib Integration for ImGui");
+        ImGui::Text("ImGui, rlImGui and Raylib, imafilebrowser - GUI, Window Init and Raylib Integration for ImGui");
         ImGui::Text("C++ programming language and BASH shell/script language");
 
         ImGui::End();
