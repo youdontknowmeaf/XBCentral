@@ -2,6 +2,7 @@
 #include <raylib.h>
 #include "rlImGui/rlImGui.h"
 #include "imgui/imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include "imgui/imfilebrowser.h"
 #include "definitions.h"
 
@@ -29,7 +30,7 @@ int main() {
     std::string drive_name = "sdb";
     int payload_type = 0;
     ImGui::FileBrowser FileBrowser;
-    string game_path = "path/to/game.iso";
+    std::string game_path = "path/to/game.iso";
     std::string game_folder = "./name_of_the_folder";
     int payload_game = 0;
     int action_selected = 0;
@@ -60,8 +61,8 @@ int main() {
         ImGui::Begin("BadUpdate - Setup");
             ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Make a Softmod USB");
             ImGui::SetNextItemWidth(40.0f);
-            ImGui::InputText("Enter the name of your USB drive: (eg. sdb, nvme0, etc.) ", drive_name, sizeof(drive_name));
-            ImGui::Text("Current drive selected: /dev/%s", drive_name);
+            ImGui::InputText("Enter the name of your USB drive: (eg. sdb, nvme0, etc.) ", &drive_name);
+            ImGui::Text("Current drive selected: /dev/%s", drive_name.c_str());
             ImGui::RadioButton("BadUpdate", &payload_type, BAD_UPDATE);
             ImGui::RadioButton("ABadAvatar", &payload_type, BAD_AVATAR);
             ImGui::RadioButton("I'll figure it out###1", &payload_type, NONE);
@@ -83,17 +84,17 @@ int main() {
         ImGui::Begin("Convert iso to god - Setup");
             ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Convert games for Aurora");
             ImGui::SetNextItemWidth(300.0f);
-            ImGui::InputText("Path", game_path, sizeof(game_path)); ImGui::SameLine();
+            ImGui::InputText("Path", &game_path); ImGui::SameLine();
             if (ImGui::Button("Browse...")) FileBrowser.Open();
             FileBrowser.Display();
             if (FileBrowser.HasSelected()) {
                 std::string tmp_path = FileBrowser.GetSelected().string();
-                strncpy(game_path, tmp_path.c_str(), sizeof(game_path));
+                game_path = tmp_path;
                 FileBrowser.ClearSelected();
             }
-            ImGui::TextDisabled("Selected game: %s", game_path);
+            ImGui::TextDisabled("Selected game: %s", game_path.c_str());
             ImGui::SetNextItemWidth(200.0f);
-            ImGui::InputText("New folder name", game_folder, sizeof(game_folder));
+            ImGui::InputText("New folder name", &game_folder);
         ImGui::End();
         ImGui::Begin("Control Panel");
             ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Control setups");
@@ -105,8 +106,8 @@ int main() {
             if (action_selected == INSTALL_PAYLOAD) {
                 switch (payload_type) {
                     case BAD_UPDATE:
-                        if (badupdate_version == NEWEST) ImGui::Text("Install Bad Update (newest) to USB: /dev/%s", drive_name);
-                        else ImGui::Text("Install Bad Update 1.%d to USB: /dev/%s", badupdate_version, drive_name);
+                        if (badupdate_version == NEWEST) ImGui::Text("Install Bad Update (newest) to USB: /dev/%s", drive_name.c_str());
+                        else ImGui::Text("Install Bad Update 1.%d to USB: /dev/%s", badupdate_version, drive_name.c_str());
                         switch (payload_game) {
                             case ROCK_BAND:
                                 ImGui::Text("Rock Band Blitz will be used to activate BadUpdate."); break;
@@ -119,21 +120,21 @@ int main() {
                         }
                         break;
                     case BAD_AVATAR:
-                        ImGui::Text("Install Bad Avatar to USB: /dev/%s", drive_name);
+                        ImGui::Text("Install Bad Avatar to USB: /dev/%s", drive_name.c_str());
                         break;
                     default:
                         ImGui::TextDisabled("No payload is installed.");
                         break;
                 }
             } else if (action_selected == FORMAT_ISO) {
-                ImGui::Text("ISO file '%s' will be converted to GOD format to '%s'.", game_path, game_folder);
+                ImGui::Text("ISO file '%s' will be converted to GOD format to '%s'.", game_path.c_str(), game_folder.c_str());
             } else {
                 ImGui::Text("Nothing to see here.");
             }
             std::string command;
             switch (action_selected) {
                 case FORMAT_ISO:
-                    command = "./extract-xiso " + game_path + " " + game_folder;
+                    command = "./extract-xiso '" + game_path + "' -d '" + game_folder + "'";
                     break;
                 default:
                     command = "sleep 1";
@@ -157,6 +158,7 @@ int main() {
         ImGui::Text("Copyright (c) 2026 'SpookScoop93' (@fuckingfuck81) \nLicensed under 3-Clause BSD License");
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Programming");
         ImGui::Text("SpookScoop93 - C++ programming");
+        ImGui::Text("</> RayNixx - C++ programming (help)")
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Tools used");
         ImGui::TextWrapped("extract-xiso - Xbox ISO extraction utility\n"
                            "Copyright (c) 2003 'in' (in@fishtank.com) / XboxDev\n"
