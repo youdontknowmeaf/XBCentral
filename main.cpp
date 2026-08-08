@@ -133,9 +133,10 @@ int main() {
             std::string command;
             switch (action_selected) {
                 case FORMAT_ISO:
-                    command = "./extract-xiso ";
-                        strcat(command, game_path + " ");
-                        strcat(command, game_folder);
+                    command = "./extract-xiso " + game_path + " " + game_folder;
+                    break;
+                default:
+                    command = "sleep 1";
                     break;
             }
             if (ImGui::Button("Exec")) run_async(command,is_working);
