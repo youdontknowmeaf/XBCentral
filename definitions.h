@@ -18,6 +18,7 @@
 #define INSTALL_PAYLOAD 1
 #define FORMAT_ISO 2
 #define NEWEST -1
+#define VER0 4
 #define VER1 1
 #define VERb1 1
 #define VER12 2

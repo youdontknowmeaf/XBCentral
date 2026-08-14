@@ -12,17 +12,6 @@
 #include <atomic>
 #include <cmath>
 
-/* URLs */
-// Bad Update
-std::string b_upd_10 = "https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.0/Xbox360BadUpdate-Retail-USB.zip";
-std::string b_upd_11 = "https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.1/Xbox360BadUpdate-Retail-USB-v1.1.zip";
-std::string b_upd_12 = "https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.2/Xbox360BadUpdate-Retail-USB-v1.2.zip";
-std::string b_upd_13 = "https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/BadUpdate-v1.3/Xbox360BadUpdate-Retail-USB-v1.3.zip";
-std::string b_upd_latest = b_upd_13; // :-)
-// ABadAvatar
-std::string b_avt_b1 = "https://github.com/shutterbug2000/ABadAvatar/releases/download/vPB1.0/ABadAvatar-publicbeta1.0.zip";
-
-
 // That func is not written by me :-p
 std::atomic<bool> is_working(false);
 void run_async(const std::string& command, std::atomic<bool>& status_flag) {
@@ -31,7 +20,7 @@ void run_async(const std::string& command, std::atomic<bool>& status_flag) {
     status_flag = true;
 
     std::thread([command, &status_flag]() {
-        std::system(command.c_str());
+        (void)std::system(command.c_str());
         status_flag = false; // Automatically resets when finished
     }).detach();
 }
@@ -63,7 +52,7 @@ int main() {
     ImGui::PushStyleColor(ImGuiCol_PlotHistogram,
         ImVec4(0.2f, 0.8f, 0.2f, 1.0f));
 
-    std::string drive_name = "sdb";
+    //std::string drive_name = "sdb";
     int payload_type = 0;
     ImGui::FileBrowser FileBrowser;
     std::string game_path = "path/to/game.iso";
@@ -102,7 +91,7 @@ int main() {
         std::string err_win_error = "";
         if (show_err_win) {
             ImGui::Begin("Error! Something went wrong.");
-            ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f), err_win_error.c_str());
+            ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f), "%s", err_win_error.c_str());
             if (ImGui::Button("Ok")) show_err_win = 0;
             ImGui::End();
         }
@@ -144,6 +133,8 @@ int main() {
         if (payload_type == BAD_AVATAR) {
             ImGui::RadioButton("Beta 1.0", &badavatar_version, 1);
         }
+        if (payload_game == TONY_HAWK) ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f),
+            "Tony Hawk's American Wasteland MUST BE FULL VERSION - you need the full game installed already.\nWe do not condone piracy nor support it.");
         ImGui::End();
         ImGui::Begin("Convert iso to god - Setup");
             ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s",
@@ -174,11 +165,11 @@ int main() {
                 switch (payload_type) {
                     case BAD_UPDATE:
                         if (badupdate_version == NEWEST)
-                            ImGui::Text("Install Bad Update (newest) to USB: /dev/%s",
-                                drive_name.c_str());
+                            ImGui::Text("Install Bad Update (newest) to USB: %s",
+                                device_list[usb_selected].c_str());
                         else
-                            ImGui::Text("Install Bad Update 1.%d to USB: /dev/%s",
-                                badupdate_version, drive_name.c_str());
+                            ImGui::Text("Install Bad Update 1.%d to USB: %s",
+                                badupdate_version, device_list[usb_selected].c_str());
                         switch (payload_game) {
                             case ROCK_BAND:
                                 ImGui::Text("Rock Band Blitz will be used to activate BadUpdate."); break;
@@ -193,7 +184,7 @@ int main() {
                         }
                         break;
                     case BAD_AVATAR:
-                        ImGui::Text("Install Bad Avatar to USB: /dev/%s", drive_name.c_str());
+                        ImGui::Text("Install Bad Avatar to USB: %s", device_list[usb_selected].c_str());
                         break;
                     default:
                         ImGui::TextDisabled("No payload is installed.");
@@ -213,10 +204,36 @@ int main() {
                         case BAD_UPDATE:
                             switch (badupdate_version) {
                                 case NEWEST:
-                                    command = "./install-payload " + drive_name " badupdate3";
+                                    command = "./install-payload " + device_list[usb_selected] + " badupdate3";
+                                    break;
+                                case VER13:
+                                    command = "./install-payload " + device_list[usb_selected] + " badupdate3";
+                                    break;
+                                case VER12:
+                                    command = "./install-payload " + device_list[usb_selected] + " badupdate2";
+                                    break;
+                                case VER1:
+                                    command = "./install-payload " + device_list[usb_selected] + " badupdate1";
+                                    break;
+                                case VER0:
+                                    command = "./install-payload " + device_list[usb_selected] + " badupdate0";
+                                    break;
+                                default:
+                                    command = "sleep 1";
+                                    break;
                             }
                             break;
+                        case BAD_AVATAR:
+                            switch (badupdate_version) {
+                                case (VERb1):
+                                    command = "./install-payload " + device_list[usb_selected] + " abadavatar1";
+                                    break;
+                                default:
+                                    command = "sleep 1";
+                                    break;
+                            }
                     }
+                break;
                 default:
                     command = "sleep 1";
                     break;
