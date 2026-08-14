@@ -260,6 +260,8 @@ int main() {
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Programming");
         ImGui::Text("SpookScoop93 - C++ programming");
         ImGui::Text("x4raynixx - C++ programming (help)");
+        ImGui::Text("Aiden Isik - BASH programming (main)");
+        ImGui::Text("nmac101 - BASH programming (side)");
         ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s", "Tools used");
         ImGui::TextWrapped("extract-xiso - Xbox ISO extraction utility\n"
                            "Copyright (c) 2003 'in' (in@fishtank.com) / XboxDev\n"
