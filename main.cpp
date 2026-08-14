@@ -5,7 +5,6 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui/imfilebrowser.h"
 #include "definitions.h"
-#include "miniz.h"
 #include <filesystem>
 #include <sys/mount.h>
 
@@ -214,20 +213,7 @@ int main() {
                         case BAD_UPDATE:
                             switch (badupdate_version) {
                                 case NEWEST:
-                                    ver_SEL = b_upd_latest;
-                                    break;
-                                case VER13:
-                                    ver_SEL = b_upd_13;
-                                    break;
-                                case VER12:
-                                    ver_SEL = b_upd_12;
-                                    break;
-                                case VER1:
-                                    ver_SEL = b_upd_10;
-                                    break;
-                                default:
-                                    ver_SEL = b_upd_latest;
-                                    break;
+                                    command = "./install-payload " + drive_name " badupdate3";
                             }
                             break;
                     }

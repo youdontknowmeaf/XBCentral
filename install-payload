@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright (c) 2026 Aiden Isik
+
+# Usage: ./install-payload <block device path (pre-mounted)> <exploit chain>
+# Exploit chain can be one of: "badupdate", "abadavatar", "badupdate3"
+
+# Make sure valid arguments have been passed
+if [[ $# -ne 2
+      || ! -e "$1"
+      || ( "$2" != "badupdate2" && "$2" != "abadavatar" && "$2" != "badupdate3") ]]; then
+    echo "Usage: ./install-payload <block device path (pre-mounted)> <exploit chain (\"badupdate\"/\"abadavatar\")>"
+    exit 1
+fi
+
+# Clear log file
+log_file="/tmp/badupdate.log"
+rm -f "$log_file" 2>&1
+
+# Dependency presence checker function
+check_deps()
+{
+    missing_deps=0
+
+    basename --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"basename\" (from GNU Coreutils), please install it!")
+
+    curl --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"curl\", please install it!")
+
+    mount --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"mount\" (from util-linux), please install it!")
+
+    grep --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"grep\", please install it!")
+
+    cut --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"cut\" (from GNU Coreutils), please install it!")
+
+    unzip --help >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"unzip\", please install it!")
+
+    cp --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"cp\" (from GNU Coreutils), please install it!")
+
+    mv --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"mv\" (from GNU Coreutils), please install it!")
+
+    rm --version >> "$log_file" 2>&1 ||
+        (missing_deps=1 && echo "Error: Missing dependency \"rm\" (from GNU Coreutils), please install it!")
+
+    return $missing_deps
+}
+
+# Make sure all required dependencies are installed
+echo "Checking dependencies..."
+check_deps
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+# Exploit chain URLs
+badupdate3_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/BadUpdate-v1.3/Xbox360BadUpdate-Retail-USB-v1.3.zip"
+badupdate2_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.2/Xbox360BadUpdate-Retail-USB-v1.2.zip"
+badupdate1_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.1/Xbox360BadUpdate-Retail-USB-v1.1.zip"
+badupdate0_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.0/Xbox360BadUpdate-Retail-USB.zip"
+abadavatar1_url="https://github.com/shutterbug2000/ABadAvatar/releases/download/vPB1.0/ABadAvatar-publicbeta1.0.zip"
+rbb_demo_url="https://download.digiex.net/Consoles/Xbox360/Arcade-games/RBBlitz.zip"
+rbb_demo_path="/tmp/$(basename $rbb_demo_url)"
+xeunshackle_url="https://github.com/Byrom90/XeUnshackle/releases/download/v1.03/XeUnshackle-BETA-v1_03.zip"
+xeunshackle_path="/tmp/$(basename $xeunshackle_url)"
+xeunshackle_dir_name="$(basename $xeunshackle_url .zip)"
+
+# Tony Hawk's American Wasteland is required to be FULL GAME so we can't ship it.
+
+# Save arguments into more sensibly named variables
+block_dev="$1"
+exploit_chain="$2"
+
+# Set the download URL for the selected exploit chain
+if [ "$exploit_chain" = "badupdate3" ]; then
+    echo "BadUpdate (RBB) exploit chain selected"
+    exploit_chain_url="$badupdate3_url"
+elif [ "$exploid_chain" = "badupdate2" ]; then
+    echo "BadUpdate (RBB) exploit chain selected"
+    exploit_chain_url="$badupdate2_url"
+elif [ "$exploit_chain" = "badupdate1" ]; then
+    echo "BadUpdate (RBB) exploit chain selected"
+    exploit_chain_url="$badupdate1_url"
+elif [ "$exploit_chain" = "badupdate0" ]; then
+    echo "BadUpdate (RBB) exploit chain selected"
+    exploit_chain_url="badupdate0_url"
+elif ["$exploit_chain" = "abadavatar1" ]; then
+    echo "ABadAvatar exploit chain selected"
+    exploit_chain_url="$abadavatar1_url"
+fi
+
+# Save the zip file path for reuse
+exploit_chain_path="/tmp/$(basename $exploit_chain_url)"
+
+# Download the selected exploit chain if it is not already downloaded
+if [ ! -e "$exploit_chain_path" ]; then
+    echo "Downloading main exploit chain..."
+    curl --output "$exploit_chain_path" --location "$exploit_chain_url" >> "$log_file" 2>&1
+
+    # Make sure it succeeded
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to download exploit chain from \"$exploit_chain_url\""
+        exit 1
+    fi
+fi
+
+# Download the RBB demo if regular BadUpdate was selected and it isn't already downloaded
+if [[ "$exploit_chain" = "badupdate" && ! -e "$rbb_demo_path" ]]; then
+    echo "Downloading Rock Band Blitz demo..."
+    curl --output "$rbb_demo_path" --location "$rbb_demo_url" >> "$log_file" 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to download Rock Band Blitz demo from \"$rbb_demo_url\""
+        exit 1
+    fi
+fi
+
+# Download XeUnshackle if it is not already downloaded
+if [ ! -e "$xeunshackle_path" ]; then
+    echo "Downloading XeUnshackle..."
+    curl --output "$xeunshackle_path" --location "$xeunshackle_url" >> "$log_file" 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to download XeUnshackle from \"$xeunshackle_url\""
+        exit 1
+    fi
+fi
+
+# Get mount path of block device
+mount_point="$(mount | grep --color=never --max-count=1 "$block_dev" | cut --delimiter=" " --field=3)"
+
+# Ensure we could find the mount point
+if [ $? -ne 0 ]; then
+    echo "Error: Unable to find mount point of block device \"$block_dev\""
+    exit 1
+fi
+
+# Make sure we can write to the mount point
+if [ ! -w "$mount_point" ]; then
+    echo "Error: Mount point \"$mount_point\" of block device \"$block_dev\" is not writable"
+    exit 1
+fi
+
+echo "Installing exploit chain to block device \"$block_dev\" via mount point \"$mount_point\""
+
+# Extract the exploit chain to the mount point
+echo "Extracting main exploit chain..."
+unzip -o "$exploit_chain_path" -d "$mount_point" >> "$log_file" 2>&1
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to extract exploit chain from \"$exploit_chain_path\" to mount point \"$mount_point\""
+    exit 1
+fi
+
+# If using regular BadUpdate, extract the RBB demo to the mount point
+if [ "$exploit_chain" = "badupdate" ]; then
+    echo "Extracting Rock Band Blitz demo..."
+    unzip -o "$rbb_demo_path" -d "$mount_point" >> "$log_file" 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo "Error: failed to extract Rock Band Blitz demo from \"$rbb_demo_path\" to mount point \"$mount_point\""
+        exit 1
+    fi
+
+    # The exploit chain is in the "Rock Band Blitz" subdirectory.
+    # Move everything out.
+    cp -rf "$mount_point/Rock Band Blitz"/* "$mount_point" >> "$log_file" 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to move exploit chain to root of mount point \"$mount_point\""
+        exit 1
+    fi
+
+    rm -rf "$mount_point/Rock Band Blitz" >> "$log_file" 2>&1
+fi
+
+# Extract the XEX payload (XeUnshackle) to the mount point
+echo "Extracting XeUnshackle..."
+unzip -o "$xeunshackle_path" -d "$mount_point" >> "$log_file" 2>&1
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to extract XeUnshackle from \"$xeunshackle_path\" to mount point \"$mount_point\""
+    exit 1
+fi
+
+# The files needed are in a subdirectory, move everything out
+cp -rf "$mount_point/$xeunshackle_dir_name"/* "$mount_point" >> "$log_file" 2>&1
+
+if [ $? -ne 0 ]; then
+    echo "Error: Failed to move XeUnshackle data to root of mount point \"$mount_point\""
+    exit 1
+fi
+
+rm -rf "$mount_point/$xeunshackle_dir_name" >> "$log_file" 2>&1
+
+echo "Success!"
+exit 0
