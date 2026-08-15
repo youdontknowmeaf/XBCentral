@@ -116,9 +116,10 @@ int main() {
             if (payload_type == BAD_UPDATE) {
                 ImGui::Text("Select which game do you want the exploit to work with");
                 if (badupdate_version != NEWEST && badupdate_version != 3)
-                    ImGui::RadioButton("Tony Hawk American Westland (Free demo)",
+                    ImGui::RadioButton("Tony Hawk's American Westland",
                         &payload_game, TONY_HAWK);
-                ImGui::RadioButton("Rock Band Blitz (Free demo)", &payload_game,
+                if (badupdate_version != VER0)
+                    ImGui::RadioButton("Rock Band Blitz (Free demo)", &payload_game,
                     ROCK_BAND);
                 ImGui::RadioButton("I'll figure it out###2", &payload_game, NONE);
             }
@@ -128,7 +129,7 @@ int main() {
             ImGui::RadioButton("1.3", &badupdate_version, 3); ImGui::SameLine();
             ImGui::RadioButton("1.2", &badupdate_version, 2); ImGui::SameLine();
             ImGui::RadioButton("1.1", &badupdate_version, 1); ImGui::SameLine();
-            ImGui::RadioButton("1.0", &badupdate_version, 0);
+            ImGui::RadioButton("1.0", &badupdate_version, 4);
         }
         if (payload_type == BAD_AVATAR) {
             ImGui::RadioButton("Beta 1.0", &badavatar_version, 1);
@@ -172,7 +173,11 @@ int main() {
                                 badupdate_version, device_list[usb_selected].c_str());
                         switch (payload_game) {
                             case ROCK_BAND:
-                                ImGui::Text("Rock Band Blitz will be used to activate BadUpdate."); break;
+                                ImGui::Text("Rock Band Blitz will be used to activate BadUpdate.");
+                                if (badupdate_version == VER0)
+                                    ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f),
+                                        "%s", "ROCK BAND BLITZ IS NOT SUPPORTED BEFORE VERSION 1.1");
+                                break;
                             case TONY_HAWK:
                                 ImGui::Text("Tony Hawk Pro Skater will be used to activate BadUpdate.");
                                 if (badupdate_version == NEWEST || badupdate_version == 3)
@@ -241,7 +246,11 @@ int main() {
 
 
             if (ImGui::Button("Exec")) {
+              if (payload_type == INSTALL_PAYLOAD && payload_game != ROCK_BAND) {
+                  command = command + " --norockband";
+              }
               run_async(command,is_working);
+              //std::cout << command << std::endl; //debug :-D
             }
         ImGui::End();
         ImGui::Begin("Status");
