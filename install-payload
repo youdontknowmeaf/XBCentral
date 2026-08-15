@@ -9,7 +9,7 @@
 log_file="/tmp/badupdate.log"
 >"$log_file" # Clear log file
 
-# helper function to print an error and exit
+# Helper function to print an error and exit
 die() {
     echo "Error: $1" >&2
     exit 1
@@ -19,7 +19,7 @@ block_dev=""
 exploit_chain=""
 skip_rbb=0
 
-# parse arguments
+# Parse arguments
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
     --norockband)
@@ -143,6 +143,7 @@ fi
 echo "Installing exploit chain to block device \"$block_dev\" via mount point \"$mount_point\""
 
 # Extract the exploit chain to the mount point
+# This creates the "Rock Band Blitz" and "Tony Hawk's American Wasteland" folders
 echo "Extracting main exploit chain..."
 unzip -o "$exploit_chain_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract exploit chain to mount point \"$mount_point\""
 
@@ -150,12 +151,21 @@ unzip -o "$exploit_chain_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Fail
 if [[ "$exploit_chain" == badupdate* && "$skip_rbb" -eq 0 ]]; then
     echo "Extracting Rock Band Blitz demo..."
     unzip -o "$rbb_demo_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract Rock Band Blitz demo"
+fi
 
-    # The exploit chain is in the "Rock Band Blitz" subdirectory. Move everything out.
-    if [[ -d "$mount_point/Rock Band Blitz" ]]; then
-        cp -rf "$mount_point/Rock Band Blitz"/* "$mount_point" >>"$log_file" 2>&1 || die "Failed to move RBB exploit chain to root of mount point"
-        rm -rf "$mount_point/Rock Band Blitz" >>"$log_file" 2>&1
-    fi
+echo "Structuring and merging exploit files to the root..."
+
+# Merge Rock Band Blitz files (Content, BadUpdatePayload) to root
+if [[ -d "$mount_point/Rock Band Blitz" ]]; then
+    cp -rf "$mount_point/Rock Band Blitz"/* "$mount_point/" >>"$log_file" 2>&1 || die "Failed to merge Rock Band Blitz folders"
+    rm -rf "$mount_point/Rock Band Blitz" >>"$log_file" 2>&1
+fi
+
+# Merge Tony Hawk's files (Content, BadUpdatePayload) to root
+# The cp -rf command smoothly merges the second Content directory into the one we just created
+if [[ -d "$mount_point/Tony Hawk's American Wasteland" ]]; then
+    cp -rf "$mount_point/Tony Hawk's American Wasteland"/* "$mount_point/" >>"$log_file" 2>&1 || die "Failed to merge Tony Hawk's American Wasteland folders"
+    rm -rf "$mount_point/Tony Hawk's American Wasteland" >>"$log_file" 2>&1
 fi
 
 # Extract the XEX payload (XeUnshackle) to the mount point
