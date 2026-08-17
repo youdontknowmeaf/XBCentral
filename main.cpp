@@ -134,8 +134,8 @@ int main() {
         if (payload_type == BAD_AVATAR) {
             ImGui::RadioButton("Beta 1.0", &badavatar_version, 1);
         }
-        if (payload_game == TONY_HAWK) ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f),
-            "Tony Hawk's American Wasteland MUST BE FULL VERSION - you need the full game installed already.\nWe do not condone piracy nor support it.");
+        //if (payload_game == TONY_HAWK) ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f),
+        //    "Tony Hawk's American Wasteland MUST BE FULL VERSION - you need the full game installed already.\nWe do not condone piracy nor support it.");
         ImGui::End();
         ImGui::Begin("Convert iso to god - Setup");
             ImGui::TextColored(ImVec4(0.1f, 1.0f, 0.1f, 1.0f), "%s",
@@ -246,8 +246,10 @@ int main() {
 
 
             if (ImGui::Button("Exec")) {
-              if (payload_type == INSTALL_PAYLOAD && payload_game != ROCK_BAND) {
+              if (payload_type == INSTALL_PAYLOAD && payload_game == TONY_HAWK) {
                   command = command + " --norockband";
+              } else if (payload_type == INSTALL_PAYLOAD && payload_game == NONE) {
+                  command = command + " --nonothing";
               }
               run_async(command,is_working);
               //std::cout << command << std::endl; //debug :-D
