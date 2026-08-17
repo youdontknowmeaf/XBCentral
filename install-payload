@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright (c) 2026 Aiden Isik & nmac101 ^w^
 
-# Usage: ./install-payload [OPTIONS] <block device path (pre-mounted)> <exploit chain>
+# Usage: ./install-payload [OPTIONS] <block device path (pre-mounted)> [exploit chain]
 # Exploit chains: badupdate0, badupdate1, badupdate2, badupdate3, abadavatar1
 
 log_file="/tmp/badupdate.log"
@@ -18,6 +18,7 @@ die() {
 block_dev=""
 exploit_chain=""
 skip_rbb=0
+only_payload=0
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -26,9 +27,13 @@ while [[ "$#" -gt 0 ]]; do
         skip_rbb=1
         shift
         ;;
+    --nonothing)
+        only_payload=1
+        shift
+        ;;
     -*)
         echo "Error: Unknown option \"$1\""
-        echo "Usage: $0 [OPTIONS] <block device path (pre-mounted)> <exploit chain>"
+        echo "Usage: $0 [OPTIONS] <block device path (pre-mounted)> [exploit chain]"
         exit 1
         ;;
     *)
@@ -45,12 +50,13 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 # Make sure required arguments have been passed and block device exists
-if [[ -z "$block_dev" || -z "$exploit_chain" || ! -e "$block_dev" ]]; then
-    echo "Usage: $0 [OPTIONS] <block device path (pre-mounted)> <exploit chain>"
+if [[ -z "$block_dev" || (-z "$exploit_chain" && "$only_payload" -eq 0) || ! -e "$block_dev" ]]; then
+    echo "Usage: $0 [OPTIONS] <block device path (pre-mounted)> [exploit chain]"
     echo "Available chains: badupdate0, badupdate1, badupdate2, badupdate3, abadavatar1"
     echo ""
     echo "Options:"
-    echo "  --norockband    Skip downloading and extracting the Rock Band Blitz demo"
+    echo "  --norockband  Skip downloading and extracting the Rock Band Blitz demo"
+    echo "  --nonothing   Only install the payload (XeUnshackle) and nothing else"
     exit 1
 fi
 
@@ -76,24 +82,26 @@ check_deps || exit 1
 rbb_demo_url="https://download.digiex.net/Consoles/Xbox360/Arcade-games/RBBlitz.zip"
 xeunshackle_url="https://github.com/Byrom90/XeUnshackle/releases/download/v1.03/XeUnshackle-BETA-v1_03.zip"
 
-# Set the download URL for the selected exploit chain
-case "$exploit_chain" in
-badupdate3) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/BadUpdate-v1.3/Xbox360BadUpdate-Retail-USB-v1.3.zip" ;;
-badupdate2) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.2/Xbox360BadUpdate-Retail-USB-v1.2.zip" ;;
-badupdate1) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.1/Xbox360BadUpdate-Retail-USB-v1.1.zip" ;;
-badupdate0) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.0/Xbox360BadUpdate-Retail-USB.zip" ;;
-abadavatar1) exploit_chain_url="https://github.com/shutterbug2000/ABadAvatar/releases/download/vPB1.0/ABadAvatar-publicbeta1.0.zip" ;;
-*)
-    echo "Error: Invalid exploit chain \"$exploit_chain\"."
-    echo "Available chains: badupdate0, badupdate1, badupdate2, badupdate3, abadavatar1"
-    exit 1
-    ;;
-esac
+if [[ "$only_payload" -eq 0 ]]; then
+    # Set the download URL for the selected exploit chain
+    case "$exploit_chain" in
+    badupdate3) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/BadUpdate-v1.3/Xbox360BadUpdate-Retail-USB-v1.3.zip" ;;
+    badupdate2) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.2/Xbox360BadUpdate-Retail-USB-v1.2.zip" ;;
+    badupdate1) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.1/Xbox360BadUpdate-Retail-USB-v1.1.zip" ;;
+    badupdate0) exploit_chain_url="https://github.com/grimdoomer/Xbox360BadUpdate/releases/download/v1.0/Xbox360BadUpdate-Retail-USB.zip" ;;
+    abadavatar1) exploit_chain_url="https://github.com/shutterbug2000/ABadAvatar/releases/download/vPB1.0/ABadAvatar-publicbeta1.0.zip" ;;
+    *)
+        echo "Error: Invalid exploit chain \"$exploit_chain\"."
+        echo "Available chains: badupdate0, badupdate1, badupdate2, badupdate3, abadavatar1"
+        exit 1
+        ;;
+    esac
 
-echo "$exploit_chain selected"
+    echo "$exploit_chain selected"
+    exploit_chain_path="/tmp/$(basename "$exploit_chain_url")"
+fi
 
 # Save the zip file paths for reuse
-exploit_chain_path="/tmp/$(basename "$exploit_chain_url")"
 rbb_demo_path="/tmp/$(basename "$rbb_demo_url")"
 xeunshackle_path="/tmp/$(basename "$xeunshackle_url")"
 xeunshackle_dir_name="$(basename "$xeunshackle_url" .zip)"
@@ -113,18 +121,21 @@ download_file() {
     fi
 }
 
-# Download all required files
-download_file "$exploit_chain_url" "$exploit_chain_path" "main exploit chain"
+if [[ "$only_payload" -eq 0 ]]; then
+    # Download all required files
+    download_file "$exploit_chain_url" "$exploit_chain_path" "main exploit chain"
 
-# If the chain starts with "badupdate" AND the flag wasn't passed, download RBB
-if [[ "$exploit_chain" == badupdate* ]]; then
-    if [[ "$skip_rbb" -eq 0 ]]; then
-        download_file "$rbb_demo_url" "$rbb_demo_path" "Rock Band Blitz demo"
-    else
-        echo "Skipping Rock Band Blitz demo download due to --norockband flag."
+    # If the chain starts with "badupdate" AND the flag wasn't passed, download RBB
+    if [[ "$exploit_chain" == badupdate* ]]; then
+        if [[ "$skip_rbb" -eq 0 ]]; then
+            download_file "$rbb_demo_url" "$rbb_demo_path" "Rock Band Blitz demo"
+        else
+            echo "Skipping Rock Band Blitz demo download due to --norockband flag."
+        fi
     fi
 fi
 
+# Always download XeUnshackle
 download_file "$xeunshackle_url" "$xeunshackle_path" "XeUnshackle"
 
 # Get mount path of block device safely using findmnt
@@ -140,36 +151,40 @@ if [[ ! -w "$mount_point" ]]; then
     die "Mount point \"$mount_point\" of block device \"$block_dev\" is not writable"
 fi
 
-echo "Installing exploit chain to block device \"$block_dev\" via mount point \"$mount_point\""
+echo "Installing to block device \"$block_dev\" via mount point \"$mount_point\""
 
-# Extract the exploit chain to the mount point
-# This creates the "Rock Band Blitz" and "Tony Hawk's American Wasteland" folders
-echo "Extracting main exploit chain..."
-unzip -o "$exploit_chain_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract exploit chain to mount point \"$mount_point\""
+if [[ "$only_payload" -eq 0 ]]; then
+    # Extract the exploit chain to the mount point
+    # This creates the "Rock Band Blitz" and "Tony Hawk's American Wasteland" folders
+    echo "Extracting main exploit chain..."
+    unzip -o "$exploit_chain_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract exploit chain to mount point \"$mount_point\""
 
-# Extract the RBB demo if applicable
-if [[ "$exploit_chain" == badupdate* && "$skip_rbb" -eq 0 ]]; then
-    echo "Extracting Rock Band Blitz demo..."
-    unzip -o "$rbb_demo_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract Rock Band Blitz demo"
-fi
+    # Extract the RBB demo if applicable
+    if [[ "$exploit_chain" == badupdate* && "$skip_rbb" -eq 0 ]]; then
+        echo "Extracting Rock Band Blitz demo..."
+        unzip -o "$rbb_demo_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract Rock Band Blitz demo"
+    fi
 
-echo "Structuring and merging exploit files to the root..."
+    echo "Structuring and merging exploit files to the root..."
 
-# Merge Rock Band Blitz files (Content, BadUpdatePayload) to root
-if [[ -d "$mount_point/Rock Band Blitz" ]]; then
-    cp -rf "$mount_point/Rock Band Blitz"/* "$mount_point/" >>"$log_file" 2>&1 || die "Failed to merge Rock Band Blitz folders"
-    rm -rf "$mount_point/Rock Band Blitz" >>"$log_file" 2>&1
-fi
+    # Merge Rock Band Blitz files (Content, BadUpdatePayload) to root
+    if [[ -d "$mount_point/Rock Band Blitz" ]]; then
+        cp -rf "$mount_point/Rock Band Blitz"/* "$mount_point/" >>"$log_file" 2>&1 || die "Failed to merge Rock Band Blitz folders"
+        rm -rf "$mount_point/Rock Band Blitz" >>"$log_file" 2>&1
+    fi
 
-# Merge Tony Hawk's files (Content, BadUpdatePayload) to root
-# The cp -rf command smoothly merges the second Content directory into the one we just created
-if [[ -d "$mount_point/Tony Hawk's American Wasteland" ]]; then
-    cp -rf "$mount_point/Tony Hawk's American Wasteland"/* "$mount_point/" >>"$log_file" 2>&1 || die "Failed to merge Tony Hawk's American Wasteland folders"
-    rm -rf "$mount_point/Tony Hawk's American Wasteland" >>"$log_file" 2>&1
+    # Merge Tony Hawk's files (Content, BadUpdatePayload) to root
+    # The cp -rf command smoothly merges the second Content directory into the one we just created
+    if [[ -d "$mount_point/Tony Hawk's American Wasteland" ]]; then
+        cp -rf "$mount_point/Tony Hawk's American Wasteland"/* "$mount_point/" >>"$log_file" 2>&1 || die "Failed to merge Tony Hawk's American Wasteland folders"
+        rm -rf "$mount_point/Tony Hawk's American Wasteland" >>"$log_file" 2>&1
+    fi
+else
+    echo "Skipping main exploit chain and demo extraction"
 fi
 
 # Extract the XEX payload (XeUnshackle) to the mount point
-echo "Extracting XeUnshackle..."
+echo "Extracting XeUnshackle payload..."
 unzip -o "$xeunshackle_path" -d "$mount_point" >>"$log_file" 2>&1 || die "Failed to extract XeUnshackle"
 
 # The files needed are in a subdirectory, move everything out
