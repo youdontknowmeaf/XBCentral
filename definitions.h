@@ -28,5 +28,6 @@
 #define VER12 2
 #define VER13 3
 #define VERb13 3
+#define HDD 1001
 
 #endif
