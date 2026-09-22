@@ -7,6 +7,8 @@
 
 #define BAD_UPDATE 1
 #define BAD_AVATAR 2
+#define BAD_MEMUNIT 3
+#define BAD_AVATARHDD 4
 #define NONE 0
 #define TONY_HAWK 1
 #define ROCK_BAND 2
