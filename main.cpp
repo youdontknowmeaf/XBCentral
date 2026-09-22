@@ -112,6 +112,7 @@ int main() {
             ImGui::TextDisabled("Choosen USB: %s, debug num: %d", device_list[usb_selected].c_str(), usb_selected);
             ImGui::RadioButton("BadUpdate", &payload_type, BAD_UPDATE);
             ImGui::RadioButton("ABadAvatar", &payload_type, BAD_AVATAR);
+            ImGui::RadioButton("ABadMemUnit", &payload_type, BAD_MEMUNIT);
             ImGui::RadioButton("I'll figure it out###1", &payload_type, NONE);
             if (payload_type == BAD_UPDATE) {
                 ImGui::Text("Select which game do you want the exploit to work with");
@@ -133,7 +134,11 @@ int main() {
         }
         if (payload_type == BAD_AVATAR) {
             ImGui::RadioButton("Beta 1.0", &badavatar_version, 1); ImGui::SameLine();
-            ImGui::RadioButton("Beta 1.3", &badavatar_version, 3);
+            ImGui::RadioButton("Beta 1.3", &badavatar_version, 3); ImGui::SameLine();
+            ImGui::RadioButton("ABadAvatarHDD (Not recommended)", &badavatar_version, HDD);
+        }
+        if (payload_type == BAD_MEMUNIT) {
+            ImGui::RadioButton("Newest", &badavatar_version, -1);
         }
         //if (payload_game == TONY_HAWK) ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f),
         //    "Tony Hawk's American Wasteland MUST BE FULL VERSION - you need the full game installed already.\nWe do not condone piracy nor support it.");
@@ -190,7 +195,14 @@ int main() {
                         }
                         break;
                     case BAD_AVATAR:
-                        ImGui::Text("Install Bad Avatar to USB: %s", device_list[usb_selected].c_str());
+                        if (badavatar_version == HDD)
+                            ImGui::Text("Install Bad Update HDD to USB: %s",
+                                device_list[usb_selected].c_str());
+                        else
+                            ImGui::Text("Install Bad Avatar to USB: %s", device_list[usb_selected].c_str());
+                        break;
+                    case BAD_MEMUNIT:
+                            ImGui::Text("Install Bad MemUnit to USB: %s", device_list[usb_selected].c_str());
                         break;
                     default:
                         ImGui::TextDisabled("No payload is installed.");
@@ -230,16 +242,26 @@ int main() {
                             }
                             break;
                         case BAD_AVATAR:
-                            switch (badupdate_version) {
+                            switch (badavatar_version) {
                                 case (VERb1):
                                     command = "./install-payload " + device_list[usb_selected] + " abadavatar1";
                                     break;
                                 case (VERb13):
                                     command = "./install-payload " + device_list[usb_selected] + " abadavatar3";
+                                case (HDD):
+                                    command = "./install-payload " + device_list[usb_selected] + " abadavatarHDD";
                                 default:
                                     command = "sleep 1";
                                     break;
                             }
+                        case BAD_MEMUNIT:
+                            switch (badavatar_version) {
+                                case (NEWEST):
+                                    command = "./install-payload " + device_list[usb_selected] + " abadmemunit";
+                                    break;
+                                default:
+                                    command = "sleep 1";
+                                    break;
                     }
                 break;
                 default:
