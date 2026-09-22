@@ -132,7 +132,8 @@ int main() {
             ImGui::RadioButton("1.0", &badupdate_version, 4);
         }
         if (payload_type == BAD_AVATAR) {
-            ImGui::RadioButton("Beta 1.0", &badavatar_version, 1);
+            ImGui::RadioButton("Beta 1.0", &badavatar_version, 1); ImGui::SameLine();
+            ImGui::RadioButton("Beta 1.3", &badavatar_version, 3);
         }
         //if (payload_game == TONY_HAWK) ImGui::TextColored(ImVec4(1.0f, 0.1f, 0.1f, 1.0f),
         //    "Tony Hawk's American Wasteland MUST BE FULL VERSION - you need the full game installed already.\nWe do not condone piracy nor support it.");
@@ -233,6 +234,8 @@ int main() {
                                 case (VERb1):
                                     command = "./install-payload " + device_list[usb_selected] + " abadavatar1";
                                     break;
+                                case (VERb13):
+                                    command = "./install-payload " + device_list[usb_selected] + " abadavatar3";
                                 default:
                                     command = "sleep 1";
                                     break;
